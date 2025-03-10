@@ -29,6 +29,7 @@ This app connects to the backend via a set of REST APIs. This app is built with 
   - filtering by "apiurl" let you change the API_URL to connect to the remote APIs
 
 - 1.1.0 :
+
   - refactoring of the project following guidelines and best practices
   - added an insert functionality to add a new item to the collection (requires React Navigation);
 
@@ -36,6 +37,7 @@ This app connects to the backend via a set of REST APIs. This app is built with 
   - manage all the data locally via mmkv. On app startup and refresh try to fetch the data from the server and update the local cache.
     All the operations interact with the local cache at first and try to synch with the remote repository;
   - a datastamp for every item is used to synch the local cache with the remote data;
+  - change the app icon
 
 ### Future implementations:
 
