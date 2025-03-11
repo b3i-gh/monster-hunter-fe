@@ -63,6 +63,7 @@ const EnergyDrinkList = () => {
       setDisplayedCans(data);
     } catch (error) {
       console.error("Failed to fetch cans: ", error);
+      Alert.alert(error.message);
     } finally {
       if (isRefreshing) {
         setRefreshing(false);

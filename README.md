@@ -28,6 +28,8 @@ This app connects to the backend via a set of REST APIs. This app is built with 
   - delete an item by swiping left on the list (after a prompt);
   - filtering by "apiurl" let you change the API_URL to connect to the remote APIs
 
+- 1.0.1 :
+  - fixed the connection to the APIs from the deployed app, as in https://stackoverflow.com/questions/77157620/how-to-enable-http-requests-using-expo/79435980
 - 1.1.0 :
 
   - refactoring of the project following guidelines and best practices
