@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,73 +10,20 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import {
-  Swipeable,
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useNavigation } from "@react-navigation/native";
+import useFetchCans from "../hooks/useFetchCans";
+import SwipeableItem from "../components/SwipeableItem";
 
 const DEFAULT_API_URL = "http://192.168.1.52:8080/api/v1/cans";
 
 const EnergyDrinkList = () => {
-  const [fetchedCans, setFetchedCans] = useState([]);
-  const [displayedCans, setDisplayedCans] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState("");
   const [APIURL, setAPIURL] = useState(DEFAULT_API_URL);
-  const [newAPIURL, setNewAPIURL] = useState("");
-
-  useEffect(() => {
-    fetchCans();
-  }, []);
-
-  const changeAPIURL = () => {
-    if (newAPIURL) {
-      Alert.alert("Change API URL", newAPIURL, [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          onPress: () => {
-            setAPIURL(newAPIURL);
-          },
-        },
-      ]);
-    } else {
-      Alert.alert("Change API URL", "Please enter a valid URL");
-    }
-  };
-
-  const fetchCans = async (isRefreshing = false) => {
-    if (isRefreshing) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-
-    try {
-      const response = await fetch(APIURL);
-      const data = await response.json();
-      setFetchedCans(data);
-      setDisplayedCans(data);
-    } catch (error) {
-      console.error("Failed to fetch cans: ", error);
-      Alert.alert(error.message);
-    } finally {
-      if (isRefreshing) {
-        setRefreshing(false);
-      } else {
-        setLoading(false);
-      }
-    }
-  };
-
-  const onRefresh = () => {
-    fetchCans(true);
-    setFilter("");
-  };
+  const {fetchedCans, loading, refreshing, fetchCans} = useFetchCans(APIURL);
+  const [displayedCans, setDisplayedCans] = useState([]);
+  const [filter, setFilter] = useState("");
+  const navigation = useNavigation();
+  const [tempAPIURL, setTempAPIURL] = useState("");
 
   useEffect(() => {
     const filteredCans = fetchedCans.filter((can) =>
@@ -87,6 +34,32 @@ const EnergyDrinkList = () => {
 
   const clearFilter = () => {
     setFilter("");
+  };
+
+  const addCan = () => {
+    navigation.navigate("AddCan", {
+      onCanAdded: fetchCans,
+      APIURL: APIURL,
+    });
+  };
+
+  const changeAPIURL = () => {
+    if (tempAPIURL) {
+      Alert.alert("Change API URL", tempAPIURL, [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: () => {
+            setAPIURL(tempAPIURL);
+          },
+        },
+      ]);
+    } else {
+      Alert.alert("Change API URL", "Please enter a valid URL");
+    }
   };
 
   const deleteCan = async (id) => {
@@ -106,59 +79,23 @@ const EnergyDrinkList = () => {
     });
 
     if (!confirmDelete) return;
-    console.log("Delete can with id: ", id);
+
     try {
       await fetch(`${APIURL}/${id}`, {
         method: "DELETE",
       });
-      setFetchedCans(fetchedCans.filter((can) => can.id !== id));
-      setDisplayedCans(displayedCans.filter((can) => can.id !== id));
+      await fetchCans();
     } catch (error) {
       console.error("Failed to delete can: ", error);
     }
   };
-
-  const renderRightActions = (id) => (
-    <TouchableOpacity
-      onPress={() => deleteCan(id)}
-      style={{
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#f66",
-        width: 80,
-      }}
-    >
-      <Text style={{ color: "white", fontWeight: "bold" }}>Delete</Text>
-    </TouchableOpacity>
-  );
-
-  const renderItem = ({ item }) => (
-    <Swipeable renderRightActions={() => renderRightActions(item.id)}>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          padding: 5,
-          margin: 5,
-          backgroundColor: "#f0f0f0",
-        }}
-      >
-        <Text style={{ fontSize: 20, fontWeight: "bold" }}>{item.name}</Text>
-        <Text>Volume: {item.cc} cc</Text>
-        <Text>Language: {item.lang}</Text>
-        <Text>
-          Created: {new Date(item.creationDate).toLocaleDateString("en-GB")}
-        </Text>
-      </View>
-    </Swipeable>
-  );
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1, paddingTop: 40 }}>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={{ fontSize: 40, fontWeight: "bold" }}>
-            Monster Hunter <Text style={{ fontSize: 10 }}>v1.0.0</Text>
+            Monster Hunter <Text style={{ fontSize: 10 }}>v1.1.0</Text>
           </Text>
 
           <View
@@ -199,8 +136,8 @@ const EnergyDrinkList = () => {
                   paddingLeft: 10,
                   width: "80%",
                 }}
-                value={newAPIURL}
-                onChangeText={setNewAPIURL}
+                value={tempAPIURL}
+                onChangeText={setTempAPIURL}
               ></TextInput>
               <TouchableOpacity
                 onPress={() => changeAPIURL()}
@@ -228,6 +165,7 @@ const EnergyDrinkList = () => {
           ) : (
             <>
               <Text>({displayedCans.length})</Text>
+
               {loading ? (
                 <ActivityIndicator size="large" color="#0000ff" />
               ) : (
@@ -235,16 +173,40 @@ const EnergyDrinkList = () => {
                   style={{ width: "100%" }}
                   data={displayedCans}
                   keyExtractor={(item) => item.id.toString()}
-                  renderItem={renderItem}
+                  renderItem={({ item }) => (
+                    <SwipeableItem item={item} onDelete={deleteCan} />
+                  )}
                   showsVerticalScrollIndicator={false}
                   refreshControl={
                     <RefreshControl
                       refreshing={refreshing}
-                      onRefresh={onRefresh}
+                      onRefresh={fetchCans}
                     />
                   }
                 />
               )}
+              <TouchableOpacity
+                onPress={addCan}
+                style={{
+                  backgroundColor: "#4CAF50",
+                  padding: 15,
+                  borderRadius: 15,
+                  marginVertical: 10,
+                  width: "80%",
+                  alignItems: "center",
+                  elevation: 3,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+                }}
+              >
+                <Text
+                  style={{ color: "white", fontSize: 18, fontWeight: "bold" }}
+                >
+                  Add New Item
+                </Text>
+              </TouchableOpacity>
             </>
           )}
         </View>
