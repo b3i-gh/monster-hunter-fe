@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Android",
+      "program": "${workspaceFolder}/.vscode/launch.json",
+      "request": "launch",
+      "type": "reactnative",
+      "cwd": "${workspaceFolder}",
+      "platform": "android",
+      "sourceMaps": true
+    },
+    {
+      "name": "Debug iOS",
+      "program": "${workspaceFolder}/.vscode/launch.json",
+      "request": "launch",
+      "type": "reactnative",
+      "cwd": "${workspaceFolder}",
+      "platform": "ios",
+      "sourceMaps": true
+    },
+    {
+      "name": "Attach to packager",
+      "request": "attach",
+      "type": "reactnative",
+      "cwd": "${workspaceFolder}",
+      "sourceMaps": true
+    },
+    {
+      "name": "Debug in Exponent",
+      "request": "launch",
+      "type": "reactnative",
+      "cwd": "${workspaceFolder}",
+      "platform": "exponent",
+      "sourceMaps": true
+    }
+  ],
+  "react-native-tools": {
+    "projectRoot": "./monsterhunter-rn"
+  }
+}

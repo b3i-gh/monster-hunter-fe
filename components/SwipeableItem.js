@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 
 const SwipeableItem = ({ item, onDelete }) => {
@@ -31,6 +31,7 @@ const SwipeableItem = ({ item, onDelete }) => {
         <Text style={{ fontSize: 20, fontWeight: "bold" }}>{item.name}</Text>
         <Text>Volume: {item.cc} cc</Text>
         <Text>Language: {item.lang}</Text>
+        {item.sugarFree && <Text>Sugar Free</Text>}
         <Text>
           Created: {new Date(item.creationDate).toLocaleDateString("en-GB")}
         </Text>
