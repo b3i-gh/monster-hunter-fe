@@ -10,7 +10,8 @@ export const useLocalDataStorage = () => {
       const asyncStorageData = await AsyncStorage.getItem("@localCanList");
       const loadedList = [];
       if (asyncStorageData) {
-        JSON.parse(asyncStorageData).forEach((c) => {
+        const parsedData = JSON.parse(asyncStorageData);
+        parsedData.forEach((c) => {
           const can = new Can(
             c.id,
             c.name,
@@ -19,25 +20,35 @@ export const useLocalDataStorage = () => {
             c.sugarFree,
             c.creationDate,
             c.deleted,
-            c.syncDate
+            c.syncDate,
+            c.photos || []
           );
           loadedList.push(can);
         });
         setLocalData(loadedList);
-        return [...loadedList];
+        return loadedList;
       } else {
         return [];
       }
     } catch (e) {
       console.error("Failed to load the local data", e);
+      return [];
     }
   };
 
   const saveLocalData = async (cans) => {
     try {
       if (cans) {
-        setLocalData(cans);
-        await AsyncStorage.setItem("@localCanList", JSON.stringify(cans));
+        // Ensure each can has a photos array
+        const cansWithPhotos = cans.map((can) => ({
+          ...can,
+          photos: can.photos || [],
+        }));
+        setLocalData(cansWithPhotos);
+        await AsyncStorage.setItem(
+          "@localCanList",
+          JSON.stringify(cansWithPhotos)
+        );
       }
     } catch (e) {
       console.error("Failed to save the local data", e);

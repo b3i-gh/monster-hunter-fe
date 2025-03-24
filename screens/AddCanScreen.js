@@ -12,7 +12,6 @@ import {
 import { Picker } from "@react-native-picker/picker";
 
 export const AddCanScreen = ({ navigation, route }) => {
-  // const APIURL = route.params.APIURL;
   const [inputName, setInputName] = useState("");
   const [inputCC, setInputCC] = useState("");
   const [inputLang, setInputLang] = useState("IT");
@@ -79,7 +78,6 @@ export const AddCanScreen = ({ navigation, route }) => {
         <Text style={styles.label}>Language:</Text>
         <Picker
           selectedValue={inputLang}
-          // style={styles.input}
           onValueChange={(itemValue) => setInputLang(itemValue)}
         >
           <Picker.Item label="IT" value="IT" />

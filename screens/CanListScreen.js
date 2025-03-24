@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-// import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useNavigation } from "@react-navigation/native";
 import SwipeableItem from "../components/SwipeableItem.js";
 import { useSyncrhonizer } from "../hooks/useSyncrhonizer.js";
@@ -142,7 +141,7 @@ export const EnergyDrinkListScreen = () => {
     <SafeAreaView style={{ flex: 1, paddingTop: 40 }}>
       <View style={{ flex: 1, alignItems: "center" }}>
         <Text style={{ fontSize: 40, fontWeight: "bold" }}>
-          Monster Hunter <Text style={{ fontSize: 10 }}>v1.2.0</Text>
+          Monster Hunter <Text style={{ fontSize: 10 }}>v1.3.0</Text>
         </Text>
         <View
           style={{
@@ -230,6 +229,7 @@ export const EnergyDrinkListScreen = () => {
                   <SwipeableItem
                     item={item}
                     onDelete={() => deleteCanEvent(item)}
+                    refreshEvent={refreshEvent}
                   />
                 )}
                 showsVerticalScrollIndicator={false}

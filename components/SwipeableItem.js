@@ -1,8 +1,11 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
+import { useNavigation } from "@react-navigation/native";
 
-const SwipeableItem = ({ item, onDelete }) => {
+const SwipeableItem = ({ item, onDelete, refreshEvent }) => {
+  const navigation = useNavigation();
+
   const renderRightActions = () => (
     <RectButton
       onPress={() => onDelete(item.id)}
@@ -19,7 +22,15 @@ const SwipeableItem = ({ item, onDelete }) => {
 
   return (
     <Swipeable renderRightActions={renderRightActions}>
-      <View
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("CanDetailsScreen", {
+            can: item,
+            onGoBack: () => {
+              refreshEvent();
+            },
+          })
+        }
         style={{
           flex: 1,
           justifyContent: "center",
@@ -35,7 +46,7 @@ const SwipeableItem = ({ item, onDelete }) => {
         <Text>
           Created: {new Date(item.creationDate).toLocaleDateString("en-GB")}
         </Text>
-      </View>
+      </TouchableOpacity>
     </Swipeable>
   );
 };

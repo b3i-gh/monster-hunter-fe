@@ -46,10 +46,12 @@ This app connects to the backend via a set of REST APIs. This app is built with 
   - useLocalDataStorage, useRemoteDataStorage and usdSynchronizer handle the different contexts and allows offline usage of the app and multiple device interaction with the db;
   - a function checks the connection with the remote server every time a synchronization is neeed: if the APIs are not reachable only the local data are modified, and will be synchronized the first time the APIs are available;
 
-### Future implementations:
+- 1.3.0:
+  - added a detailed view for the cans, with an image gallery
+  - added image handling: users can now add and delete photos for each can. Photos are picked from the device gallery and synchronized with the remote database
 
-- add images handling (upload via app, refactoring data model)
-- implement a detailed view of all the images for a can
+
+### Future implementations:
 - add style and extract all the style into an object
 - change the app icon
 - style the ui
