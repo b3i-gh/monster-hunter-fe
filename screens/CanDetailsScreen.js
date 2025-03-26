@@ -4,16 +4,21 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
-  StyleSheet,
   Alert,
   Text,
   SafeAreaView,
   Modal,
-  Dimensions,
   ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useSyncrhonizer } from "../hooks/useSyncrhonizer";
+import {
+  colors,
+  typography,
+  spacing,
+  commonStyles,
+  screenStyles,
+} from "../styles/theme";
 
 export const CanDetailsScreen = ({ route, navigation }) => {
   const { can, onGoBack } = route.params;
@@ -50,7 +55,9 @@ export const CanDetailsScreen = ({ route, navigation }) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [3, 4],
-      quality: 1,
+      quality: 0.7,
+      exif: false,
+      base64: false,
     });
 
     if (!result.canceled) {
@@ -105,21 +112,35 @@ export const CanDetailsScreen = ({ route, navigation }) => {
     setModalVisible(true);
   };
 
+  const styles = screenStyles.canDetails;
+
   return (
-    <SafeAreaView style={{ flex: 1, paddingTop: 40 }}>
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         {/* Can Details Section */}
         <View style={styles.detailsContainer}>
           <Text style={styles.canName}>{can.name}</Text>
-          <Text style={styles.detailText}>Volume: {can.cc} cc</Text>
-          <Text style={styles.detailText}>Language: {can.lang}</Text>
-          {can.sugarFree && <Text style={styles.detailText}>Sugar Free</Text>}
-          <Text style={styles.detailText}>
-            Created: {new Date(can.creationDate).toLocaleDateString("en-GB")}
-          </Text>
-          <Text style={styles.detailText}>
-            Synced: {new Date(can.syncDate).toLocaleDateString("en-GB")}
-          </Text>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Volume:</Text>
+            <Text style={styles.detailValue}>{can.cc} cc</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Language:</Text>
+            <Text style={styles.detailValue}>{can.lang}</Text>
+          </View>
+          {can.sugarFree && (
+            <View style={styles.sugarFreeBadge}>
+              <Text style={styles.sugarFreeText}>Sugar Free</Text>
+            </View>
+          )}
+          <View style={styles.dateContainer}>
+            <Text style={styles.dateLabel}>
+              Created: {new Date(can.creationDate).toLocaleDateString("en-GB")}
+            </Text>
+            <Text style={styles.dateLabel}>
+              Synced: {new Date(can.syncDate).toLocaleDateString("en-GB")}
+            </Text>
+          </View>
         </View>
 
         {/* Photos Section */}
@@ -127,7 +148,7 @@ export const CanDetailsScreen = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>Photos</Text>
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#0000ff" />
+              <ActivityIndicator size="large" color={colors.primary} />
             </View>
           ) : (
             <FlatList
@@ -143,6 +164,7 @@ export const CanDetailsScreen = ({ route, navigation }) => {
                   <Image source={{ uri: item.uri }} style={styles.photo} />
                 </TouchableOpacity>
               )}
+              contentContainerStyle={styles.photoGrid}
             />
           )}
         </View>
@@ -181,74 +203,5 @@ export const CanDetailsScreen = ({ route, navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-  },
-  detailsContainer: {
-    backgroundColor: "#f0f0f0",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  canName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  detailText: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  photosSection: {
-    flex: 1,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  photoContainer: {
-    flex: 1,
-    margin: 5,
-  },
-  photo: {
-    width: "100%",
-    height: 150,
-    borderRadius: 8,
-  },
-  addButton: {
-    backgroundColor: "#4CAF50",
-    padding: 15,
-    borderRadius: 8,
-    marginVertical: 10,
-    alignItems: "center",
-  },
-  disabledButton: {
-    backgroundColor: "#cccccc",
-  },
-  addButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.9)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  enlargedPhoto: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
 
 export default CanDetailsScreen;

@@ -81,31 +81,47 @@ export const useRemoteDataStorage = () => {
       console.log("Starting photo upload for can:", canId);
       console.log("Photo URI:", photoUri);
 
+      // Get file info before upload
+      const fileInfo = await FileSystem.getInfoAsync(photoUri);
+      console.log("File info:", {
+        size: fileInfo.size,
+        exists: fileInfo.exists,
+        isDirectory: fileInfo.isDirectory,
+      });
+
       const formData = new FormData();
-      // Get the filename from the URI
       const filename = photoUri.split("/").pop();
 
-      formData.append("file", {
+      // Create the file object with proper metadata
+      const file = {
         uri: photoUri,
         type: "image/jpeg",
         name: filename || "photo.jpg",
+      };
+
+      console.log("File object:", {
+        uri: file.uri,
+        type: file.type,
+        name: file.name,
       });
 
-      console.log("FormData structure:", {
-        uri: photoUri,
-        type: "image/jpeg",
-        name: filename || "photo.jpg",
-      });
+      formData.append("file", file);
 
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      console.log("Starting upload request...");
       const response = await fetch(`${apiUrl}/${canId}/photos`, {
         method: "POST",
         body: formData,
         headers: {
           Accept: "application/json",
-          "Content-Type": "multipart/form-data",
         },
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       console.log("Response status:", response.status);
       const responseText = await response.text();
       console.log("Response text:", responseText);
@@ -121,6 +137,12 @@ export const useRemoteDataStorage = () => {
     } catch (error) {
       console.error("Failed to upload photo:", error);
       console.error("Error stack:", error.stack);
+
+      // Check if it's a timeout error
+      if (error.name === "AbortError") {
+        throw new Error("Upload timed out. The file might be too large.");
+      }
+
       throw error;
     }
   };

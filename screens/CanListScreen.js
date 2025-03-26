@@ -13,9 +13,17 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import SwipeableItem from "../components/SwipeableItem.js";
 import { useSyncrhonizer } from "../hooks/useSyncrhonizer.js";
+import {
+  colors,
+  typography,
+  spacing,
+  commonStyles,
+  screenStyles,
+} from "../styles/theme";
 
 export const EnergyDrinkListScreen = () => {
   const navigation = useNavigation();
+  const styles = screenStyles.canList;
   const {
     deleteCan,
     synchronize,
@@ -44,7 +52,6 @@ export const EnergyDrinkListScreen = () => {
     fetchCans();
   }, []);
 
-  // the list of displayed cans is re-rendered every time some action is performed (addCan, deleteCan, refreshList) or the filter is changed
   useEffect(() => {
     const renderCanList = async () => {
       const filteredCans = applyFilter();
@@ -138,91 +145,57 @@ export const EnergyDrinkListScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, paddingTop: 40 }}>
-      <View style={{ flex: 1, alignItems: "center" }}>
-        <Text style={{ fontSize: 40, fontWeight: "bold" }}>
-          Monster Hunter <Text style={{ fontSize: 10 }}>v1.3.0</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Text style={styles.title}>
+          Monster Hunter <Text style={styles.version}>v1.4.0</Text>
         </Text>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            borderColor: "gray",
-            borderWidth: 1,
-            margin: 10,
-            paddingLeft: 10,
-            width: "80%",
-          }}
-        >
+        <View style={styles.searchContainer}>
           <TextInput
-            style={{ flex: 1, height: 40 }}
+            style={styles.searchInput}
             placeholder="Filter by name"
+            placeholderTextColor={colors.text.secondary}
             value={filter}
             onChangeText={setFilter}
           />
           {filter.length > 0 && (
-            <TouchableOpacity onPress={clearFilter} style={{ padding: 10 }}>
-              <Text style={{ color: "blue" }}>X</Text>
+            <TouchableOpacity onPress={clearFilter} style={styles.clearButton}>
+              <Text style={styles.clearButtonText}>X</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {filter.toLowerCase() === "apiurl" ? (
-          <View
-            style={{
-              marginTop: 40,
-              width: "80%",
-              flex: 1,
-              alignItems: "center",
-            }}
-          >
-            <Text>Current API URL:</Text>
-            <Text>{currentApiUrl}</Text>
+          <View style={styles.apiSection}>
+            <Text style={styles.apiUrl}>Current API URL:</Text>
+            <Text style={styles.apiUrl}>{currentApiUrl}</Text>
             <TextInput
               placeholder="Insert new URL"
-              style={{
-                flexDirection: "row",
-                borderColor: "gray",
-                borderWidth: 1,
-                margin: 10,
-                paddingLeft: 10,
-                width: "100%",
-              }}
+              placeholderTextColor={colors.text.secondary}
+              style={styles.apiInput}
               value={tempApiUrl}
               onChangeText={setTempApiUrl}
-            ></TextInput>
+            />
             <TouchableOpacity
-              onPress={() => changeApiUrlEvent()}
-              style={{
-                backgroundColor: "#4CAF50",
-                padding: 10,
-                borderRadius: 15,
-                marginVertical: 10,
-                width: "80%",
-                alignItems: "center",
-                elevation: 3,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.25,
-                shadowRadius: 3.84,
-              }}
+              onPress={changeApiUrlEvent}
+              style={styles.actionButton}
             >
-              <Text
-                style={{ color: "white", fontSize: 18, fontWeight: "bold" }}
-              >
-                Change API URL
-              </Text>
+              <Text style={styles.actionButtonText}>Change API URL</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <>
-            <Text>({displayedCans.length})</Text>
-            {!reachableApi && <Text style={{ color: "red" }}>Offline</Text>}
+            <Text style={styles.countText}>({displayedCans.length})</Text>
+            {!reachableApi && <Text style={styles.offlineText}>Offline</Text>}
             {refreshing ? (
-              <ActivityIndicator size="large" color="#0000ff" />
+              <ActivityIndicator
+                size="large"
+                color={colors.primary}
+                style={styles.loadingIndicator}
+              />
             ) : (
               <FlatList
-                style={{ width: "100%" }}
+                style={styles.listContainer}
                 data={displayedCans}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
@@ -241,27 +214,8 @@ export const EnergyDrinkListScreen = () => {
                 }
               />
             )}
-            <TouchableOpacity
-              onPress={addCanEvent}
-              style={{
-                backgroundColor: "#4CAF50",
-                padding: 15,
-                borderRadius: 15,
-                marginVertical: 10,
-                width: "80%",
-                alignItems: "center",
-                elevation: 3,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.25,
-                shadowRadius: 3.84,
-              }}
-            >
-              <Text
-                style={{ color: "white", fontSize: 18, fontWeight: "bold" }}
-              >
-                Add New Item
-              </Text>
+            <TouchableOpacity onPress={addCanEvent} style={styles.actionButton}>
+              <Text style={styles.actionButtonText}>Add New Item</Text>
             </TouchableOpacity>
           </>
         )}

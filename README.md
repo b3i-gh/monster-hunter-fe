@@ -50,9 +50,10 @@ This app connects to the backend via a set of REST APIs. This app is built with 
   - added a detailed view for the cans, with an image gallery
   - added image handling: users can now add and delete photos for each can. Photos are picked from the device gallery and synchronized with the remote database
 
+- 1.4.0
+  - improved the style of the mobile app and refactored all the css info to improve the codebase
+  - changed the app icon
+
 
 ### Future implementations:
-- add style and extract all the style into an object
-- change the app icon
-- style the ui
 - barcode recognition (possibly a front-end feature)
