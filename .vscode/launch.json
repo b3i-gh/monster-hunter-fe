@@ -36,6 +36,6 @@
     }
   ],
   "react-native-tools": {
-    "projectRoot": "./monsterhunter-rn"
+    "projectRoot": "./monsterhunter"
   }
 }

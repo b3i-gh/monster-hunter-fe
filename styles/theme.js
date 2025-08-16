@@ -171,7 +171,8 @@ export const screenStyles = {
   canDetails: {
     safeArea: {
       flex: 1,
-      paddingTop: 20,
+      paddingTop: 40,
+      paddingBottom: 40,
       backgroundColor: colors.background,
     },
     container: {
@@ -321,6 +322,7 @@ export const screenStyles = {
     safeArea: {
       flex: 1,
       paddingTop: 40,
+      paddingBottom: 40,
       backgroundColor: colors.background,
     },
     container: {
@@ -356,30 +358,9 @@ export const screenStyles = {
     clearButtonText: {
       color: colors.primary,
     },
-    apiSection: {
-      marginTop: spacing.xl,
-      width: "80%",
-      flex: 1,
-      alignItems: "center",
-    },
-    apiUrl: {
-      ...typography.body,
-      marginBottom: spacing.s,
-    },
-    apiInput: {
-      flexDirection: "row",
-      borderColor: colors.text.secondary,
-      borderWidth: 1,
-      margin: spacing.m,
-      paddingLeft: spacing.m,
-      width: "100%",
-      borderRadius: 8,
-      color: colors.text.primary,
-    },
     actionButton: {
       ...commonStyles.button.primary,
       marginVertical: spacing.m,
-      width: "80%",
     },
     actionButtonText: {
       ...typography.button,
@@ -474,4 +455,11 @@ export const screenStyles = {
       fontWeight: "bold",
     },
   },
+};
+
+export const canListActionRow = {
+  flexDirection: "row",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: 16,
 };

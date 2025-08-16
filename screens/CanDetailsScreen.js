@@ -11,19 +11,15 @@ import {
   ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useSyncrhonizer } from "../hooks/useSyncrhonizer";
-import {
-  colors,
-  typography,
-  spacing,
-  commonStyles,
-  screenStyles,
-} from "../styles/theme";
+import * as FileSystem from "expo-file-system";
+import { useLocalDataStorage } from "../hooks/useLocalDataStorage";
+import { colors, screenStyles } from "../styles/theme";
 
 export const CanDetailsScreen = ({ route, navigation }) => {
   const { can, onGoBack } = route.params;
-  const { addPhotoToCan, deletePhotoFromCan, getLatestCanData } =
-    useSyncrhonizer();
+  const { addPhotoToCan, deletePhotoFromCan, getSelectedCanData } =
+    useLocalDataStorage();
+
   const [photos, setPhotos] = useState(can.photos || []);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -31,6 +27,8 @@ export const CanDetailsScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     setPhotos(can.photos || []);
+    console.log("Can details loaded:", can);
+    console.log("Photos array:", can.photos);
   }, [can]);
 
   useEffect(() => {
@@ -55,21 +53,40 @@ export const CanDetailsScreen = ({ route, navigation }) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [3, 4],
-      quality: 0.7,
+      quality: 0.3,
       exif: false,
       base64: false,
     });
 
     if (!result.canceled) {
       setIsLoading(true);
-      const newPhoto = {
-        id: Date.now().toString(),
-        uri: result.assets[0].uri,
-        syncDate: null,
-      };
       try {
+        // Get the original URI
+        const originalUri = result.assets[0].uri;
+        // Create a new filename
+        const filename = `can_${can.id}_${Date.now()}.jpg`;
+        // Get the app's document directory
+        const destPath = `${FileSystem.documentDirectory}can_photos/${filename}`;
+
+        // Ensure the directory exists
+        await FileSystem.makeDirectoryAsync(
+          `${FileSystem.documentDirectory}can_photos`,
+          { intermediates: true }
+        );
+
+        // Copy the file
+        await FileSystem.copyAsync({
+          from: originalUri,
+          to: destPath,
+        });
+
+        const newPhoto = {
+          id: Date.now().toString(),
+          uri: destPath, // Use the new path!
+        };
+
         await addPhotoToCan(can, newPhoto);
-        const updatedCan = await getLatestCanData(can.id);
+        const updatedCan = await getSelectedCanData(can.id);
         if (updatedCan) {
           setPhotos(updatedCan.photos);
         }
@@ -91,6 +108,14 @@ export const CanDetailsScreen = ({ route, navigation }) => {
         onPress: async () => {
           setIsLoading(true);
           try {
+            // Find the photo object to get its URI
+            const photoToDelete = photos.find((photo) => photo.id === photoId);
+            if (photoToDelete && photoToDelete.uri) {
+              // Delete the file from the device
+              await FileSystem.deleteAsync(photoToDelete.uri, {
+                idempotent: true,
+              });
+            }
             await deletePhotoFromCan(can, photoId);
             const updatedPhotos = photos.filter(
               (photo) => photo.id !== photoId
@@ -137,9 +162,6 @@ export const CanDetailsScreen = ({ route, navigation }) => {
             <Text style={styles.dateLabel}>
               Created: {new Date(can.creationDate).toLocaleDateString("en-GB")}
             </Text>
-            <Text style={styles.dateLabel}>
-              Synced: {new Date(can.syncDate).toLocaleDateString("en-GB")}
-            </Text>
           </View>
         </View>
 
@@ -155,15 +177,18 @@ export const CanDetailsScreen = ({ route, navigation }) => {
               data={photos}
               numColumns={2}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.photoContainer}
-                  onPress={() => enlargePhoto(item)}
-                  onLongPress={() => deletePhoto(item.id)}
-                >
-                  <Image source={{ uri: item.uri }} style={styles.photo} />
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                console.log("Rendering photo item:", item);
+                return (
+                  <TouchableOpacity
+                    style={styles.photoContainer}
+                    onPress={() => enlargePhoto(item)}
+                    onLongPress={() => deletePhoto(item.id)}
+                  >
+                    <Image source={{ uri: item.uri }} style={styles.photo} />
+                  </TouchableOpacity>
+                );
+              }}
               contentContainerStyle={styles.photoGrid}
             />
           )}

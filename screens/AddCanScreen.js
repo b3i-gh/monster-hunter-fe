@@ -37,6 +37,7 @@ export const AddCanScreen = ({ navigation, route }) => {
     };
 
     try {
+      console.log(newCanData);
       await route.params.onCanAdded(newCanData);
       navigation.goBack();
     } catch (error) {

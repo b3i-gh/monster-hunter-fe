@@ -12,42 +12,25 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import SwipeableItem from "../components/SwipeableItem.js";
-import { useSyncrhonizer } from "../hooks/useSyncrhonizer.js";
-import {
-  colors,
-  typography,
-  spacing,
-  commonStyles,
-  screenStyles,
-} from "../styles/theme";
+import { useLocalDataStorage } from "../hooks/useLocalDataStorage.js";
+import { colors, screenStyles, canListActionRow } from "../styles/theme";
+import { exportBackup, importBackup } from "../utils/backup";
+import { Ionicons } from "@expo/vector-icons"; // Add this import for icons
 
 export const EnergyDrinkListScreen = () => {
+  const [refreshing, setRefreshing] = useState(false);
+  const { loadLocalData, addCan, deleteCan, saveLocalData } =
+    useLocalDataStorage();
+  const [canCollection, setCanCollection] = useState([]);
   const navigation = useNavigation();
   const styles = screenStyles.canList;
-  const {
-    deleteCan,
-    synchronize,
-    changeApiUrl,
-    getCurrentApiUrl,
-    reachableApi,
-    addCan,
-  } = useSyncrhonizer();
-  const [canCollection, setCanCollection] = useState([]);
   const [displayedCans, setDisplayedCans] = useState([]);
   const [filter, setFilter] = useState("");
-  const [tempApiUrl, setTempApiUrl] = useState("");
-  const [currentApiUrl, setCurrentApiUrl] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchCans = async () => {
-      try {
-        const cans = await synchronize();
-        setCanCollection(cans);
-        setCurrentApiUrl(getCurrentApiUrl());
-      } catch (error) {
-        console.error("Failed to fetch the items: ", error.message);
-      }
+      refreshEvent();
     };
     fetchCans();
   }, []);
@@ -74,45 +57,27 @@ export const EnergyDrinkListScreen = () => {
 
   const refreshEvent = async () => {
     setRefreshing(true);
-    try {
-      const cans = await synchronize();
-      setCanCollection(cans);
-    } catch (error) {
-      console.error("Failed to refresh:", error);
-    } finally {
-      setRefreshing(false);
-    }
+    const refreshCanList = async () => {
+      try {
+        setCanCollection(await loadLocalData());
+      } catch (error) {
+        console.error("Failed to fetch the items: ", error.message);
+      } finally {
+        setRefreshing(false);
+      }
+    };
+    refreshCanList();
   };
 
   const clearFilter = () => {
     setFilter("");
   };
 
-  const changeApiUrlEvent = () => {
-    if (tempApiUrl) {
-      Alert.alert("Change API URL", tempApiUrl, [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          onPress: () => {
-            changeApiUrl(tempApiUrl);
-            setCurrentApiUrl(tempApiUrl);
-          },
-        },
-      ]);
-    } else {
-      Alert.alert("Change API URL", "Please enter a valid URL");
-    }
-  };
-
-  const addCanEvent = () => {
+  const addCanEvent = async () => {
     navigation.navigate("AddCanScreen", {
       onCanAdded: async (newCanData) => {
         await addCan(newCanData);
-        refreshEvent();
+        await refreshEvent();
       },
     });
   };
@@ -136,20 +101,49 @@ export const EnergyDrinkListScreen = () => {
     try {
       setRefreshing(true);
       await deleteCan(can);
-      const up = await synchronize();
-      setCanCollection(up);
+      setCanCollection(await loadLocalData());
     } catch (error) {
       console.error("Failed to delete can: ", error);
     }
     setRefreshing(false);
   };
 
+  const handleExportBackup = async () => {
+    setIsProcessing(true);
+    try {
+      await exportBackup();
+    } catch (e) {
+      alert("Errore durante l'export: " + e.message);
+    }
+    setIsProcessing(false);
+  };
+
+  const handleImportBackup = async () => {
+    setIsProcessing(true);
+    try {
+      await importBackup();
+      await refreshEvent();
+    } catch (e) {
+      alert("Errore durante l'import: " + e.message);
+    }
+    setIsProcessing(false);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.title}>
-          Monster Hunter <Text style={styles.version}>v1.4.0</Text>
-        </Text>
+        {/* Title */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "flex-start",
+          }}
+        >
+          <Text style={styles.title}>
+            Monster Hunter <Text style={styles.version}>v2.0.0</Text>
+          </Text>
+        </View>
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -164,60 +158,58 @@ export const EnergyDrinkListScreen = () => {
             </TouchableOpacity>
           )}
         </View>
-
-        {filter.toLowerCase() === "apiurl" ? (
-          <View style={styles.apiSection}>
-            <Text style={styles.apiUrl}>Current API URL:</Text>
-            <Text style={styles.apiUrl}>{currentApiUrl}</Text>
-            <TextInput
-              placeholder="Insert new URL"
-              placeholderTextColor={colors.text.secondary}
-              style={styles.apiInput}
-              value={tempApiUrl}
-              onChangeText={setTempApiUrl}
-            />
-            <TouchableOpacity
-              onPress={changeApiUrlEvent}
-              style={styles.actionButton}
-            >
-              <Text style={styles.actionButtonText}>Change API URL</Text>
-            </TouchableOpacity>
-          </View>
+        <Text style={styles.countText}>({displayedCans.length})</Text>
+        {refreshing ? (
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            style={styles.loadingIndicator}
+          />
         ) : (
-          <>
-            <Text style={styles.countText}>({displayedCans.length})</Text>
-            {!reachableApi && <Text style={styles.offlineText}>Offline</Text>}
-            {refreshing ? (
-              <ActivityIndicator
-                size="large"
-                color={colors.primary}
-                style={styles.loadingIndicator}
-              />
-            ) : (
-              <FlatList
-                style={styles.listContainer}
-                data={displayedCans}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                  <SwipeableItem
-                    item={item}
-                    onDelete={() => deleteCanEvent(item)}
-                    refreshEvent={refreshEvent}
-                  />
-                )}
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={refreshEvent}
-                  />
-                }
+          <FlatList
+            style={styles.listContainer}
+            data={displayedCans}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <SwipeableItem
+                item={item}
+                onDelete={() => deleteCanEvent(item)}
+                refreshEvent={refreshEvent}
               />
             )}
-            <TouchableOpacity onPress={addCanEvent} style={styles.actionButton}>
-              <Text style={styles.actionButtonText}>Add New Item</Text>
-            </TouchableOpacity>
-          </>
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={refreshEvent}
+              />
+            }
+          />
+        )}
+        {/* Action Buttons Row */}
+        <View style={canListActionRow}>
+          <TouchableOpacity onPress={addCanEvent} style={[styles.actionButton]}>
+            <Ionicons name="add-circle-outline" size={20} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleExportBackup}
+            style={[styles.actionButton]}
+          >
+            <Ionicons name="cloud-upload-outline" size={20} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleImportBackup}
+            style={[styles.actionButton]}
+          >
+            <Ionicons name="cloud-download-outline" size={20} />
+          </TouchableOpacity>
+        </View>
+        {isProcessing && (
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            style={{ marginVertical: 16 }}
+          />
         )}
       </View>
     </SafeAreaView>

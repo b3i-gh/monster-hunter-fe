@@ -7,7 +7,6 @@ class Can {
     sugarFree,
     creationDate = Date.now(),
     deleted = false,
-    syncDate = null,
     photos = []
   ) {
     this.id = id;
@@ -17,12 +16,10 @@ class Can {
     this.sugarFree = sugarFree;
     this.creationDate = creationDate;
     this.deleted = deleted;
-    this.syncDate = syncDate;
     this.photos = photos.map((photo) => ({
       id: photo.id,
       uri: photo.uri,
       filename: photo.filename,
-      syncDate: photo.syncDate,
       localUri: photo.localUri, // Used for local storage of downloaded images
     }));
   }
@@ -32,7 +29,6 @@ class Can {
       id: photo.id,
       uri: photo.uri,
       filename: photo.filename,
-      syncDate: photo.syncDate,
       localUri: photo.localUri,
     });
     this.syncDate = null; // Mark for sync
@@ -40,7 +36,6 @@ class Can {
 
   removePhoto(photoId) {
     this.photos = this.photos.filter((p) => p.id !== photoId);
-    this.syncDate = null; // Mark for sync
   }
 
   getPhotoUri(photoId) {
